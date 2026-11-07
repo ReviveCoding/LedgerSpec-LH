@@ -1,28 +1,46 @@
 # LedgerSpec-LH
 
-Deterministic bank reconciliation and double-entry journal validation for local, offline accounting review.
+[![CI](https://github.com/ReviveCoding/LedgerSpec-LH/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ReviveCoding/LedgerSpec-LH/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/ReviveCoding/LedgerSpec-LH)](https://github.com/ReviveCoding/LedgerSpec-LH/releases/latest)
 
-LedgerSpec-LH validates transaction batches, proposes bank-to-ledger relationships, preserves ambiguous items for review, and generates content-addressed workpapers. All examples use synthetic data. The runtime has no bank or posting connection.
+LedgerSpec-LH is an offline accounting CLI for **bank reconciliation**, **double-entry journal validation**, and **auditable workpapers**. It proposes bank-to-ledger relationships, keeps ambiguous items available for review, and records each completed request in a local SQLite journal.
 
-## Run locally
+## Quick start
 
-Requires Python 3.11 or newer.
+Requires Git and Python 3.11 or newer. The commands work in PowerShell and POSIX shells.
 
-    python -m pip install .
-    ledgerspec reconcile examples/reconciliation.json --output example-run --request-id example
-    ledgerspec journal examples/journal.json --output journal-run --request-id journal
-    python -m unittest discover -s tests -v
+```sh
+git clone https://github.com/ReviveCoding/LedgerSpec-LH.git
+cd LedgerSpec-LH
+python -m pip install .
+python -c "from pathlib import Path; Path('runs').mkdir(exist_ok=True)"
+ledgerspec reconcile examples/reconciliation.json --output runs/reconciliation --request-id example
+ledgerspec journal examples/journal.json --output runs/journal --request-id journal
+```
 
-Use a distinct output directory for each request. An exact repeat against a completed directory returns the verified receipt. A changed request or incomplete receipt fails closed. Reconciliation output contains proposed relationships and unresolved records.
-
-## Architecture
-
-| Stage | Implementation |
+| Example | Expected result |
 |---|---|
-| Intake | Strict JSON decoding, duplicate-key rejection, row limits, and cent-level amounts |
-| Execution | Typed tasks, validated dependency graph, and bounded 100-row pages |
-| Reconciliation | Account and currency partitions, date-window search, reference evidence, and global ambiguity checks |
-| Journal validation | Per-currency debit and credit checks with per-entry decisions |
-| Evidence | SHA-256 workpapers, readback verification, and a local SQLite receipt journal |
+| [Bank reconciliation](examples/reconciliation.json) | L1 and B1 match. B2 remains for review with a 200-cent difference. |
+| [Journal validation](examples/journal.json) | J1 is accepted with 10,000 cents on each side and a zero difference. |
 
-[Evaluation and scope](docs/evaluation.md)
+Each command prints a JSON receipt with the workpaper and its SHA-256 digest. Repeating the exact request with the same output directory returns the saved receipt. See [usage](docs/usage.md) for input formats, output fields, and receipt handling.
+
+## How it works
+
+```mermaid
+flowchart TD
+    A["Validate JSON and bind the request"] --> B["Build the task graph and page the input"]
+    B -->|Bank batch| C["Reconcile bank and ledger rows"]
+    B -->|Journal batch| D["Validate debit and credit by currency"]
+    C --> E["Save and verify the workpaper"]
+    D --> E
+    E --> F["Record completion in SQLite"]
+```
+
+The reconciliation engine partitions transactions by account and currency, narrows candidates by date, and checks amount and reference evidence before proposing links. Ambiguous candidates remain in the workpaper. The journal validator uses integer cents and checks balance per currency.
+
+## Evaluation
+
+In prior offline R5 candidate tests, pair F1 on the **RecBench USD payout-to-bank subset** increased from **85.53% to 96.29%**. The median workflow time for a synthetic 1,000-row case decreased from **14.559 s to 1.029 s**. These are regression measurements on the evaluated inputs. GitHub CI exercises the portable CLI separately with synthetic fixtures. [Evaluation details and scope](docs/evaluation.md)
+
+The CLI runs locally against supplied JSON and produces proposals for review. Financial posting and live bank connections are outside its scope.
