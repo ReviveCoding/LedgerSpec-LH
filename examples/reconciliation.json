@@ -1,0 +1,40 @@
+{
+  "ledger_entries": [
+    {
+      "id": "L1",
+      "book": "cash",
+      "entry_date": "2026-01-10",
+      "reference": "REF-12345 PAY-20260110",
+      "counterparty": "Cedar Harbor",
+      "amount": "100.00",
+      "currency": "USD"
+    },
+    {
+      "id": "L2",
+      "book": "cash",
+      "entry_date": "2026-01-10",
+      "reference": "REF-67777",
+      "counterparty": "West Harbor",
+      "amount": "100.00",
+      "currency": "USD"
+    }
+  ],
+  "bank_lines": [
+    {
+      "id": "B1",
+      "account": "cash",
+      "posted_date": "2026-01-11",
+      "narrative": "Cedar Harbor REF-12345 PAY-20260110",
+      "amount": "100.00",
+      "currency": "USD"
+    },
+    {
+      "id": "B2",
+      "account": "cash",
+      "posted_date": "2026-01-11",
+      "narrative": "West Harbor REF-67777",
+      "amount": "98.00",
+      "currency": "USD"
+    }
+  ]
+}

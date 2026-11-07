@@ -1,0 +1,33 @@
+{
+  "accounts": [
+    {
+      "id": "cash"
+    },
+    {
+      "id": "revenue"
+    }
+  ],
+  "journal_entries": [
+    {
+      "id": "J1",
+      "entry_date": "2026-01-10",
+      "currency": "USD"
+    }
+  ],
+  "journal_lines": [
+    {
+      "entry_id": "J1",
+      "account_id": "cash",
+      "line_no": "1",
+      "debit_amount": "100.00",
+      "credit_amount": ""
+    },
+    {
+      "entry_id": "J1",
+      "account_id": "revenue",
+      "line_no": "2",
+      "debit_amount": "",
+      "credit_amount": "100.00"
+    }
+  ]
+}
